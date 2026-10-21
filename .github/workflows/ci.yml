@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install build dependency (pinned: lib/ is committed)
+        run: npm install --no-save esbuild@0.23.0
+      - name: Build lib/
+        run: node build.mjs
+      - name: Verify committed build is reproducible
+        run: git diff --exit-code -- lib/
+      - name: Offline simulation
+        run: node test/simulate.cjs

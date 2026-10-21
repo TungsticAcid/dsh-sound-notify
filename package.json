@@ -1,0 +1,65 @@
+{
+  "name": "dsh-sound-notify",
+  "description": "DeepSeek Harness web client plugin: per-scope (main agent / subagent) notification sounds for turn completion, questions, approvals, and plan reviews — synthesized with Web Audio, with per-row volume, custom clips, and a mute button.",
+  "version": "0.3.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TungsticAcid/dsh-sound-notify.git"
+  },
+  "homepage": "https://github.com/TungsticAcid/dsh-sound-notify#readme",
+  "bugs": {
+    "url": "https://github.com/TungsticAcid/dsh-sound-notify/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "notification",
+    "sound",
+    "web-audio"
+  ],
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "locale",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.1.2-rc.1"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-session"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0",
+    "react-dom": ">=18.2.0"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node test/simulate.cjs"
+  },
+  "license": "Apache-2.0"
+}

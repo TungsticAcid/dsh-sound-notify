@@ -1,0 +1,5 @@
+# One Host row only: playback, Session-status watching, and the settings button
+# all live in the Client half (lib/client.js).
+- insert:
+    - id: sound-notify
+      name: 'dsh-sound-notify'

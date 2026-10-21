@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Notification sounds",
+    "description": "Plays a short cue when a turn finishes and when the agent waits for your answer or approval."
+  }
+}

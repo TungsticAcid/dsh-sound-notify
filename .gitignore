@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# Local logs / editor state
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Build output is committed on purpose so `dsh plugin add github:...` works
+# without running a build; regenerate with `node build.mjs`.
