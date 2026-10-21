@@ -116,17 +116,22 @@ export function apply(ctx: any): void {
   const SoundButton = createSoundControl(store);
   const DOCK_SLOT = 'conversation.composer.dock';
   ctx.slots.inject(DOCK_SLOT, () => {
-    try {
-      // Lower priority wins: -1 shadows a stale registration of an earlier
-      // bundle revision that is still mounted in this page until a reload.
-      return ctx.slots.register({ name: DOCK_SLOT, id: 'sound-notify', order: 900, priority: -1 }, SoundButton);
-    } catch (error) {
-      console.warn('[sound-notify] dock entry conflict, falling back to a separate id', error);
-      return ctx.slots.register(
-        { name: DOCK_SLOT, id: 'sound-notify-settings', order: 901, priority: -2 },
-        SoundButton,
-      );
+    // A stale copy of this plugin may still be mounted in the page until a
+    // reload. The slot list rejects a duplicate id at the same priority but
+    // accepts a lower one, so step the priority down on the SAME id: the new
+    // entry shadows the stale one instead of rendering a second button.
+    let lastError: unknown;
+    for (const priority of [-1, -2, -5, -10]) {
+      try {
+        return ctx.slots.register({ name: DOCK_SLOT, id: 'sound-notify', order: 900, priority }, SoundButton);
+      } catch (error) {
+        lastError = error;
+      }
     }
+    // Never invent a second dock id: without a free priority keep whatever
+    // button the page already has and let one reload replace it.
+    console.warn('[sound-notify] dock entry already owned by a stale instance; reload to update it', lastError);
+    return () => {};
   });
 
   // Escape hatch for debugging and for scripted control from the page console.

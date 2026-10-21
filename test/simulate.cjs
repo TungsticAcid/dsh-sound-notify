@@ -491,7 +491,7 @@ assert.equal(migratedDoc.events.done.effect, 'marimba', 'a legacy settings docum
 assert.equal(migratedDoc.subagent.enabled, true, 'a legacy settings document migrates the subagent switch');
 assert.equal(migratedDoc.subagent.events.done.volume, 0.7, 'a legacy settings document migrates subagent rows');
 
-// ---- stale dock registration fallback ---------------------------------
+// ---- stale dock registration: same id, lower priority -----------------
 
 const conflict = loadPlugin();
 const conflicted = [];
@@ -500,19 +500,43 @@ conflict.plugin.apply({
   slots: {
     inject: (ownerKey, callback) => callback(),
     register: (options) => {
-      conflicted.push(options);
-      if (options.id === 'sound-notify') {
+      conflicted.push({ id: options.id, priority: options.priority });
+      // A stale instance owns priority 0 and -1; this plugin must keep the
+      // same id and step further down rather than rendering a second button.
+      if (options.priority >= -2) {
         throw new Error(
-          'list slot "conversation.composer.dock" already has an entry with id "sound-notify" at priority 0',
+          `list slot "conversation.composer.dock" already has an entry with id "${options.id}" at priority ${options.priority}`,
         );
       }
       return () => {};
     },
   },
 });
-assert.equal(conflicted[0].id, 'sound-notify', 'the primary dock id is tried first');
-assert.equal(conflicted[1].id, 'sound-notify-settings', 'a conflicting stale entry falls back to a separate id');
-assert.equal(conflicted[1].priority, -2, 'the fallback entry also shadows lower');
+assert.equal(conflicted.length, 3, 'the plugin retries with progressively lower priorities');
+assert.ok(
+  conflicted.every((entry) => entry.id === 'sound-notify'),
+  'every attempt keeps the same dock id (never a second speaker button)',
+);
+assert.deepEqual(
+  conflicted.map((entry) => entry.priority),
+  [-1, -2, -5],
+  'priority steps down until the stale registration is shadowed',
+);
+
+// When every priority is taken the plugin registers nothing and does not throw.
+const noRoom = loadPlugin();
+const attempts = [];
+noRoom.plugin.apply({
+  ...makeCtx(),
+  slots: {
+    inject: (ownerKey, callback) => callback(),
+    register: (options) => {
+      attempts.push(options.priority);
+      throw new Error('already has an entry with id "sound-notify"');
+    },
+  },
+});
+assert.deepEqual(attempts, [-1, -2, -5, -10], 'all shadow priorities are attempted before giving up');
 
 // ---- rendered UI structure --------------------------------------------
 
